@@ -30,7 +30,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         //         $entry->hasMonitoredTag();
         // });
         Telescope::filter(function (IncomingEntry $entry) {
-            return true; 
+            return true;
         });
     }
 
@@ -64,9 +64,10 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         //         //
         //     ]);
         // });
-        Gate::define('viewTelescope', function ($user) {
+        Gate::define('viewTelescope', function ($user = null) {
             return true;
         });
+
 
     }
 }
