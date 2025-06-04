@@ -79,7 +79,7 @@ class AuthController extends Controller
             OtpCode::updateOrCreate(
                 ['email' => $request->email],
                 [
-                    'otp_code' => $otp,
+                    'otp_code' => bcrypt($otp), // Menggunakan bcrypt untuk hash OTP
                     'expires_at' => Carbon::now()->addMinutes(10),
                     'is_verified' => false
                 ]
@@ -112,11 +112,10 @@ class AuthController extends Controller
         ]);
 
         $otpEntry = OtpCode::where('email', $request->email)
-            ->where('otp_code', $request->otp_code)
             ->where('expires_at', '>', Carbon::now())
             ->first();
 
-        if (!$otpEntry) {
+        if (!$otpEntry || !Hash::check($request->otp_code, $otpEntry->otp_code)) {
             return response()->json([
                 'status' => 'invalid',
                 'message' => 'OTP salah atau sudah kadaluarsa.'
@@ -144,7 +143,7 @@ class AuthController extends Controller
 
         $otp = OtpCode::where('email', $request->email)
             ->where('is_verified', true)
-            ->first(); // tidak cek expires_at lagi
+            ->first(); 
 
         if (!$otp) {
             return response()->json([
@@ -193,7 +192,7 @@ class AuthController extends Controller
             $user = User::create([
                 'name' => $otp->name,
                 'email' => $request->email,
-                'pin_code' => Hash::make($request->pin_code),
+                'pin_code' => bcrypt($request->pin_code), // Menggunakan bcrypt untuk hash PIN
                 'email_verified_at' => Carbon::now()
             ]);
 
@@ -219,7 +218,8 @@ class AuthController extends Controller
             ], 500);
         }
     }
-        public function me(Request $request)
+
+    public function me(Request $request)
     {
         return response()->json([
             'status' => 'success',
@@ -227,7 +227,8 @@ class AuthController extends Controller
             'data' => $request->user(),
         ]);
     }
-       public function logout(Request $request)
+
+    public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
